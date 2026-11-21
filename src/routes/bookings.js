@@ -67,6 +67,9 @@ router.post('/', asyncHandler(async (req, res) => {
   if (machine.owner_id.equals(req.farmer._id)) throw forbidden('You cannot book your own machine.');
 
   const booking = await runLocked(machine._id, async (session) => {
+    // Deletion uses the same lock; the period may have disappeared while we waited.
+    const freshPeriod = await AvailabilityPeriod.findById(period._id).session(session);
+    if (!freshPeriod) throw notFound('Availability period not found.');
     const fresh = await Machine.findById(machine._id).session(session);
     if (!fresh.is_active) throw conflict('This machine is not accepting requests.');
     if (await approvedClash(machine._id, body.start_date, body.end_date, null, session)) {
