@@ -6,6 +6,7 @@ const AvailabilityPeriod = require('../models/AvailabilityPeriod');
 const Booking = require('../models/Booking');
 const requireAuth = require('../middleware/auth');
 const asyncHandler = require('../utils/asyncHandler');
+const { runLocked } = require('../utils/lock');
 const { parseId } = require('../utils/ids');
 const { parsePagination, envelope } = require('../utils/pagination');
 const { isValidDate } = require('../utils/dates');
@@ -97,9 +98,14 @@ router.get('/:machineId', asyncHandler(async (req, res) => {
 router.patch('/:machineId', asyncHandler(async (req, res) => {
   const machine = await getVisibleMachine(req.params.machineId, req.farmer);
   if (!machine.owner_id.equals(req.farmer._id)) throw forbidden('Only the owner can change this machine.');
-  Object.assign(machine, patchSchema.parse(req.body));
-  await machine.save();
-  res.json(present(machine, await ownerMap([machine])));
+  const body = patchSchema.parse(req.body);
+  const updated = await runLocked(machine._id, async (session) => {
+    const fresh = await Machine.findById(machine._id).session(session);
+    Object.assign(fresh, body);
+    await fresh.save({ session });
+    return fresh;
+  });
+  res.json(present(updated, await ownerMap([updated])));
 }));
 
 module.exports = router;

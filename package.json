@@ -8,7 +8,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node scripts/seed.js",
-    "test": "NODE_ENV=test node --test"
+    "test": "node --test"
   },
   "license": "MIT",
   "dependencies": {

@@ -1,11 +1,14 @@
 // Tests use their own database and drop it afterwards - never your dev data.
+process.env.NODE_ENV = 'test';
 process.env.MONGODB_URI = process.env.TEST_MONGODB_URI || 'mongodb://127.0.0.1:27017/agrimatch_test';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const { connectDb } = require('../src/db');
 const app = require('../src/app');
+const config = require('../src/config');
 
 let server; let base;
 
@@ -86,4 +89,15 @@ test('AgriMatch booking lifecycle', async () => {
   const bad = await call('POST', '/bookings', { token: piotr.token, body: { nope: 1 } });
   assert.equal(bad.status, 422);
   assert.equal(bad.body.status, 422);
+
+  for (const query of ['limit[toString]=1', 'limit[]=1', 'offset[valueOf]=1', 'offset=', 'offset=9007199254740992']) {
+    assert.equal((await call('GET', `/machines?${query}`, { token: anna.token })).status, 422, query);
+  }
+  for (const sub of ['invalid-id', { $ne: null }]) {
+    const token = jwt.sign({ sub }, config.jwtSecret);
+    assert.equal((await call('GET', '/machines', { token })).status, 401);
+  }
+  for (const password of ['a'.repeat(73), 'ą'.repeat(37)]) {
+    assert.equal((await call('POST', '/auth/login', { body: { email: 'anna@test.io', password } })).status, 422);
+  }
 });

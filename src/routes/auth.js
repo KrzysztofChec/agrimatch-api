@@ -7,16 +7,21 @@ const Farmer = require('../models/Farmer');
 const asyncHandler = require('../utils/asyncHandler');
 const { unauthorized, conflict } = require('../utils/errors');
 
+// bcrypt ignores bytes after the first 72, including in UTF-8 passwords.
+const passwordSchema = z.string().max(100).refine((value) => Buffer.byteLength(value, 'utf8') <= 72, {
+  message: 'password must be at most 72 UTF-8 bytes',
+});
+
 const registerSchema = z.object({
   display_name: z.string().trim().min(1).max(100),
   email: z.string().trim().toLowerCase().email().max(254),
   town: z.string().trim().min(1).max(100),
-  password: z.string().min(8).max(100),
+  password: z.string().min(8).pipe(passwordSchema),
 }).strict();
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
-  password: z.string().min(1).max(100),
+  password: z.string().min(1).pipe(passwordSchema),
 }).strict();
 
 const sign = (farmer) =>

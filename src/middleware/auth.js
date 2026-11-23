@@ -3,6 +3,7 @@ const config = require('../config');
 const Farmer = require('../models/Farmer');
 const asyncHandler = require('../utils/asyncHandler');
 const { unauthorized } = require('../utils/errors');
+const { idSchema } = require('../utils/ids');
 
 // Identity always comes from the verified token, never from the request body.
 module.exports = asyncHandler(async (req, res, next) => {
@@ -15,6 +16,7 @@ module.exports = asyncHandler(async (req, res, next) => {
   } catch {
     throw unauthorized('Invalid or expired token.');
   }
+  if (!idSchema.safeParse(payload.sub).success) throw unauthorized('Invalid or expired token.');
   const farmer = await Farmer.findById(payload.sub);
   if (!farmer) throw unauthorized('Invalid or expired token.');
   req.farmer = farmer;
