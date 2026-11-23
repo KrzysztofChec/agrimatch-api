@@ -137,9 +137,11 @@ The Render service uses Node 20, runs `npm start`, and health-checks `/health`. 
 
 ## Postman
 
-`postman/agrimatch.postman_collection.json` is a Collection v2.1 with 43 requests in six folders: health, auth, machines, availability periods, bookings, and security/validation.
+Public workspace: [AgriMatch on Postman](https://www.postman.com/selfdefenseteam/agrimatch).
 
-Import it into Postman, set the `baseUrl` collection variable (default `http://localhost:3000`; use the Render URL for the deployed API), and run it with the Collection Runner in collection order. Each run registers fresh users with a `runId`, chains tokens and IDs through collection variables, and every request has test assertions. The collection creates its own machine and dates, so `npm run seed` is not required.
+The repository also contains `postman/agrimatch.postman_collection.json`, a Collection v2.1 with 43 requests in six folders: health, auth, machines, availability periods, bookings, and security/validation.
+
+Import the JSON into Postman, or open the hosted workspace. Set the `baseUrl` collection variable (default `http://localhost:3000`; use the Render URL for the deployed API), and run it with the Collection Runner in collection order. Each run registers fresh users with a `runId`, chains tokens and IDs through collection variables, and every request has test assertions. The collection creates its own machine and dates, so `npm run seed` is not required.
 
 ### Manual smoke flow
 
